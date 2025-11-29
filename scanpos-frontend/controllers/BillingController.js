@@ -10,23 +10,41 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
     $scope.loading = false;
     $scope.polling = null;
     
-    // Initialize - create new draft invoice
+    // Initialize - but don't create invoice yet
     $scope.init = function() {
+        // Just initialize variables, invoice will be created when first item is added
+        $scope.invoice = null;
+        $scope.items = [];
+        $scope.selectedProduct = null;
+        $scope.quantity = 1;
+        $scope.searchText = '';
+        $scope.discount = 0;
+    };
+    
+    // Create invoice if it doesn't exist
+    $scope.createInvoiceIfNeeded = function() {
+        if ($scope.invoice) {
+            // Invoice already exists
+            return Promise.resolve($scope.invoice);
+        }
+        
         $scope.loading = true;
-        InvoicesService.createInvoice()
+        return InvoicesService.createInvoice()
             .then(function(response) {
                 $scope.invoice = response.data.invoice;
                 $scope.items = [];
                 $scope.loading = false;
                 // Generate QR code for mobile scanner
                 $scope.generateQRCode();
-                // Start polling for updates (useful for scanner integration later)
+                // Start polling for updates
                 $scope.startPolling();
+                return $scope.invoice;
             })
             .catch(function(error) {
                 console.error('Error creating invoice:', error);
                 alert('Failed to create invoice');
                 $scope.loading = false;
+                throw error;
             });
     };
     
@@ -92,22 +110,26 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             return;
         }
         
-        InvoicesService.addItem($scope.invoice.id, {
-            product_id: $scope.selectedProduct.id,
-            quantity: $scope.quantity
-        })
-        .then(function(response) {
-            // Refresh invoice to get updated items
-            $scope.refreshInvoice();
-            // Clear selection
-            $scope.selectedProduct = null;
-            $scope.searchText = '';
-            $scope.quantity = 1;
-        })
-        .catch(function(error) {
-            console.error('Error adding product:', error);
-            alert(error.data && error.data.message ? error.data.message : 'Failed to add product');
-        });
+        // Create invoice first if it doesn't exist
+        $scope.createInvoiceIfNeeded()
+            .then(function() {
+                return InvoicesService.addItem($scope.invoice.id, {
+                    product_id: $scope.selectedProduct.id,
+                    quantity: $scope.quantity
+                });
+            })
+            .then(function(response) {
+                // Refresh invoice to get updated items
+                $scope.refreshInvoice();
+                // Clear selection
+                $scope.selectedProduct = null;
+                $scope.searchText = '';
+                $scope.quantity = 1;
+            })
+            .catch(function(error) {
+                console.error('Error adding product:', error);
+                alert(error.data && error.data.message ? error.data.message : 'Failed to add product');
+            });
     };
     
     // Update item quantity
@@ -178,6 +200,11 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
     
     // Complete invoice
     $scope.completeInvoice = function() {
+        if (!$scope.invoice) {
+            alert('No invoice to complete. Please add items first.');
+            return;
+        }
+        
         if (!$scope.items || $scope.items.length === 0) {
             alert('Cannot complete invoice with no items. Please add at least one product.');
             return;
@@ -206,11 +233,29 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
     
     // Calculate totals (display only, actual calculation on backend)
     $scope.getSubtotal = function() {
-        return $scope.invoice ? $scope.invoice.subtotal_amount : 0;
+        if (!$scope.invoice) return 0;
+        // Calculate from items for real-time update
+        if ($scope.items && $scope.items.length > 0) {
+            var subtotal = 0;
+            $scope.items.forEach(function(item) {
+                subtotal += item.line_subtotal || 0;
+            });
+            return subtotal;
+        }
+        return $scope.invoice.subtotal_amount || 0;
     };
     
     $scope.getTotalTax = function() {
-        return $scope.invoice ? $scope.invoice.total_tax : 0;
+        if (!$scope.invoice) return 0;
+        // Calculate from items for real-time update
+        if ($scope.items && $scope.items.length > 0) {
+            var tax = 0;
+            $scope.items.forEach(function(item) {
+                tax += item.line_tax || 0;
+            });
+            return tax;
+        }
+        return $scope.invoice.total_tax || 0;
     };
     
     $scope.getGrandTotal = function() {

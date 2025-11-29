@@ -132,6 +132,10 @@ def add_invoice_item(invoice_id):
     if not product.is_active:
         return jsonify({'message': 'Product is not active'}), 400
     
+    # Check stock availability
+    if product.stock_qty < quantity:
+        return jsonify({'message': f'Insufficient stock. Available: {product.stock_qty}'}), 400
+    
     # Check if product already exists in invoice
     existing_item = InvoiceItem.query.filter_by(
         invoice_id=invoice_id,
@@ -139,8 +143,13 @@ def add_invoice_item(invoice_id):
     ).first()
     
     if existing_item:
+        # Check if new total quantity exceeds stock
+        new_total_qty = existing_item.quantity + quantity
+        if product.stock_qty < new_total_qty:
+            return jsonify({'message': f'Insufficient stock. Available: {product.stock_qty}, Already in cart: {existing_item.quantity}'}), 400
+        
         # Update quantity
-        existing_item.quantity += quantity
+        existing_item.quantity = new_total_qty
         existing_item.calculate_line_totals()
         db.session.commit()
         
@@ -218,6 +227,11 @@ def update_invoice_item(invoice_id, item_id):
         db.session.commit()
         return jsonify({'message': 'Item removed'}), 200
     
+    # Check stock availability for the new quantity
+    product = item.product
+    if product and product.stock_qty < quantity:
+        return jsonify({'message': f'Insufficient stock. Available: {product.stock_qty}'}), 400
+    
     item.quantity = quantity
     item.calculate_line_totals()
     db.session.commit()
@@ -277,6 +291,18 @@ def complete_invoice(invoice_id):
     if discount < 0:
         return jsonify({'message': 'Discount cannot be negative'}), 400
     
+    # Validate stock availability for all items before completing
+    for item in invoice.items:
+        product = item.product
+        if product and product.stock_qty < item.quantity:
+            return jsonify({'message': f'Insufficient stock for {product.name}. Available: {product.stock_qty}'}), 400
+    
+    # Reduce stock quantities
+    for item in invoice.items:
+        product = item.product
+        if product:
+            product.stock_qty -= item.quantity
+    
     # Calculate totals
     invoice.calculate_totals()
     invoice.discount_amount = discount
@@ -320,16 +346,19 @@ def complete_invoice(invoice_id):
 @invoices_bp.route('/api/invoices/<int:invoice_id>', methods=['DELETE'])
 @jwt_required()
 def delete_invoice(invoice_id):
-    """Delete an invoice (only drafts or empty invoices)"""
+    """Delete an invoice (only drafts or restore stock if deleting completed invoice)"""
     invoice = Invoice.query.get(invoice_id)
     if not invoice:
         return jsonify({'message': 'Invoice not found'}), 404
     
-    # Only allow deletion of draft invoices or completed invoices with no items
-    if invoice.status == 'completed' and invoice.items.count() > 0:
-        return jsonify({'message': 'Cannot delete completed invoice with items. Consider cancelling instead.'}), 400
-    
     try:
+        # If deleting a completed invoice, restore stock quantities
+        if invoice.status == 'completed':
+            for item in invoice.items:
+                product = item.product
+                if product:
+                    product.stock_qty += item.quantity
+        
         # Delete all items first
         InvoiceItem.query.filter_by(invoice_id=invoice_id).delete()
         # Delete invoice
