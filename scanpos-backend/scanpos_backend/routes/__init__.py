@@ -17,3 +17,6 @@ from .products import products_bp
 
 # Import and expose invoices blueprint
 from .invoices import invoices_bp
+
+# Import and expose reports blueprint
+from .reports import reports_bp

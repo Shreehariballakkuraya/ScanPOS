@@ -1,197 +1,103 @@
 <div class="container mt-4">
-    <h2 class="mb-4">Reports & Invoices</h2>
+    <h2 class="mb-4">Reports & Analytics</h2>
     
-    <!-- Filters -->
+    <!-- Sales Analytics Section -->
     <div class="card mb-4">
+        <div class="card-header" style="background-color: #34495e; color: white;">
+            <h5 class="mb-0"><i class="bi bi-graph-up"></i> Sales Analytics</h5>
+        </div>
         <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" ng-model="filters.status">
-                        <option value="">All</option>
-                        <option value="draft">Draft</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
+            <!-- Date Range Filter -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
                     <label class="form-label">From Date</label>
-                    <input type="date" class="form-control" ng-model="filters.from">
+                    <input type="date" class="form-control" ng-model="salesFilters.from">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">To Date</label>
-                    <input type="date" class="form-control" ng-model="filters.to">
+                    <input type="date" class="form-control" ng-model="salesFilters.to">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button class="btn btn-primary me-2" ng-click="applyFilters()">
-                        <i class="bi bi-funnel"></i> Filter
-                    </button>
-                    <button class="btn btn-outline-secondary" ng-click="clearFilters()">
-                        <i class="bi bi-x-circle"></i> Clear
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary" ng-click="loadSalesReport()">
+                        <i class="bi bi-search"></i> Generate Report
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Invoices List -->
-    <div class="card">
-        <div class="card-body">
-            <div ng-show="loading" class="text-center py-4">
-                <div class="spinner-border" role="status">
+            
+            <!-- Loading State -->
+            <div ng-if="loadingSales" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
             
-            <div ng-show="!loading && invoices.length === 0" class="text-center py-4">
-                <p class="text-muted">No invoices found</p>
-            </div>
-            
-            <div ng-show="!loading && invoices.length > 0" class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Invoice #</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Items</th>
-                            <th>Subtotal</th>
-                            <th>Tax</th>
-                            <th>Discount</th>
-                            <th>Total</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="invoice in invoices">
-                            <td><strong>{{ invoice.invoice_number }}</strong></td>
-                            <td>{{ invoice.created_at | date:'short' }}</td>
-                            <td>
-                                <span class="badge" ng-class="{
-                                    'bg-warning': invoice.status === 'draft',
-                                    'bg-success': invoice.status === 'completed',
-                                    'bg-secondary': invoice.status === 'cancelled'
-                                }">
-                                    {{ invoice.status | uppercase }}
-                                </span>
-                            </td>
-                            <td>{{ invoice.items_count }}</td>
-                            <td>₹{{ invoice.subtotal_amount }}</td>
-                            <td>₹{{ invoice.total_tax }}</td>
-                            <td>₹{{ invoice.discount_amount }}</td>
-                            <td><strong>₹{{ invoice.total_amount }}</strong></td>
-                            <td>
-                                <button class="btn btn-sm btn-info me-1" ng-click="viewInvoice(invoice)">
-                                    <i class="bi bi-eye"></i> View
-                                </button>
-                                <button class="btn btn-sm btn-danger" ng-click="deleteInvoice(invoice)" 
-                                        title="Delete invoice">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Sales Summary -->
+            <div ng-if="!loadingSales && salesReport">
+                <!-- Summary Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <div class="card-body text-center">
+                                <h6 class="text-uppercase mb-2" style="opacity: 0.9;">Total Sales</h6>
+                                <h4 class="mb-0" style="font-family: monospace;">₹{{salesReport.total_sales | number:2}}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <div class="card-body text-center">
+                                <h6 class="text-uppercase mb-2" style="opacity: 0.9;">Total Tax</h6>
+                                <h4 class="mb-0" style="font-family: monospace;">₹{{salesReport.total_tax | number:2}}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <div class="card-body text-center">
+                                <h6 class="text-uppercase mb-2" style="opacity: 0.9;">Total Discount</h6>
+                                <h4 class="mb-0" style="font-family: monospace;">₹{{salesReport.total_discount | number:2}}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <div class="card-body text-center">
+                                <h6 class="text-uppercase mb-2" style="opacity: 0.9;">Invoice Count</h6>
+                                <h4 class="mb-0" style="font-family: monospace;">{{salesReport.invoice_count}}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div>
-                        Showing page {{ filters.page }} of {{ totalPages }}
-                    </div>
-                    <div>
-                        <button class="btn btn-sm btn-outline-primary me-2" 
-                                ng-click="prevPage()" ng-disabled="filters.page === 1">
-                            <i class="bi bi-chevron-left"></i> Previous
-                        </button>
-                        <button class="btn btn-sm btn-outline-primary" 
-                                ng-click="nextPage()" ng-disabled="filters.page === totalPages">
-                            Next <i class="bi bi-chevron-right"></i>
-                        </button>
+                <!-- Top Products Table -->
+                <div ng-if="salesReport.top_products.length > 0">
+                    <h5 class="mb-3">Top Selling Products</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead style="background-color: #ecf0f1;">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Product Name</th>
+                                    <th>SKU</th>
+                                    <th class="text-end">Quantity Sold</th>
+                                    <th class="text-end">Total Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="product in salesReport.top_products track by $index">
+                                    <td>{{$index + 1}}</td>
+                                    <td>{{product.product_name}}</td>
+                                    <td><code>{{product.sku}}</code></td>
+                                    <td class="text-end" style="font-family: monospace;">{{product.total_quantity}}</td>
+                                    <td class="text-end" style="font-family: monospace; font-weight: bold;">₹{{product.total_revenue | number:2}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Invoice Details Modal -->
-    <div ng-show="selectedInvoice" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Invoice Details - {{ selectedInvoice.invoice_number }}</h5>
-                    <button type="button" class="btn-close" ng-click="closeDetails()"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Invoice Info -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <p><strong>Invoice Number:</strong> {{ selectedInvoice.invoice_number }}</p>
-                            <p><strong>Date:</strong> {{ selectedInvoice.created_at | date:'medium' }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Status:</strong> 
-                                <span class="badge" ng-class="{
-                                    'bg-warning': selectedInvoice.status === 'draft',
-                                    'bg-success': selectedInvoice.status === 'completed',
-                                    'bg-secondary': selectedInvoice.status === 'cancelled'
-                                }">
-                                    {{ selectedInvoice.status | uppercase }}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- Items -->
-                    <h6>Items</h6>
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>Qty</th>
-                                <th>Price</th>
-                                <th>Tax%</th>
-                                <th>Tax</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr ng-repeat="item in selectedInvoice.items">
-                                <td>{{ item.product_name }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>₹{{ item.unit_price }}</td>
-                                <td>{{ item.tax_percent }}%</td>
-                                <td>₹{{ item.line_tax }}</td>
-                                <td><strong>₹{{ item.line_total }}</strong></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    
-                    <!-- Totals -->
-                    <div class="row mt-3">
-                        <div class="col-md-6 offset-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td>Subtotal:</td>
-                                    <td class="text-end"><strong>₹{{ selectedInvoice.subtotal_amount }}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>Tax:</td>
-                                    <td class="text-end"><strong>₹{{ selectedInvoice.total_tax }}</strong></td>
-                                </tr>
-                                <tr>
-                                    <td>Discount:</td>
-                                    <td class="text-end"><strong>-₹{{ selectedInvoice.discount_amount }}</strong></td>
-                                </tr>
-                                <tr class="border-top">
-                                    <td><h5>Grand Total:</h5></td>
-                                    <td class="text-end"><h5 class="text-primary">₹{{ selectedInvoice.total_amount }}</h5></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" ng-click="closeDetails()">Close</button>
+                
+                <div ng-if="salesReport.top_products.length === 0" class="alert alert-info">
+                    No sales data available for the selected date range.
                 </div>
             </div>
         </div>

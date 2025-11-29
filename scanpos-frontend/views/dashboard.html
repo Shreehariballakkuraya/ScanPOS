@@ -1,36 +1,128 @@
 <div class="py-4">
     <h2 class="mb-4">Dashboard</h2>
     
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Today's Sales</h5>
-                    <h3>₹{{stats.todaySales | number:2}}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card bg-success text-white mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">This Week's Sales</h5>
-                    <h3>₹{{stats.weekSales | number:2}}</h3>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card bg-info text-white mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Invoice Count</h5>
-                    <h3>{{stats.invoiceCount}}</h3>
-                </div>
-            </div>
+    <div ng-if="loading" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
         </div>
     </div>
     
-    <div class="alert alert-info mt-4">
-        Welcome to ScanPOS! This is your dashboard where you'll see sales statistics and quick actions.
+    <div ng-if="!loading && stats">
+        <!-- Sales Statistics Cards -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div class="card-body">
+                        <h6 class="card-title text-uppercase mb-2" style="font-size: 0.85rem; opacity: 0.9;">Today's Sales</h6>
+                        <h3 class="mb-0" style="font-family: monospace;">₹{{stats.today.total_sales | number:2}}</h3>
+                        <small style="opacity: 0.8;">{{stats.today.invoice_count}} invoices</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white mb-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="card-body">
+                        <h6 class="card-title text-uppercase mb-2" style="font-size: 0.85rem; opacity: 0.9;">This Week</h6>
+                        <h3 class="mb-0" style="font-family: monospace;">₹{{stats.week.total_sales | number:2}}</h3>
+                        <small style="opacity: 0.8;">{{stats.week.invoice_count}} invoices</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white mb-3" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="card-body">
+                        <h6 class="card-title text-uppercase mb-2" style="font-size: 0.85rem; opacity: 0.9;">This Month</h6>
+                        <h3 class="mb-0" style="font-family: monospace;">₹{{stats.month.total_sales | number:2}}</h3>
+                        <small style="opacity: 0.8;">{{stats.month.invoice_count}} invoices</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card text-white mb-3" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <div class="card-body">
+                        <h6 class="card-title text-uppercase mb-2" style="font-size: 0.85rem; opacity: 0.9;">Total Products</h6>
+                        <h3 class="mb-0" style="font-family: monospace;">{{stats.product_count}}</h3>
+                        <small style="opacity: 0.8;">items in stock</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Low Stock Alerts -->
+        <div class="row mt-3" ng-if="stats.low_stock.length > 0">
+            <div class="col-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Low Stock Alerts</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Product Name</th>
+                                        <th>SKU</th>
+                                        <th class="text-end">Stock Qty</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="product in stats.low_stock">
+                                        <td>{{product.name}}</td>
+                                        <td><code>{{product.sku}}</code></td>
+                                        <td class="text-end"><span class="badge bg-danger">{{product.stock_qty}}</span></td>
+                                        <td class="text-end" style="font-family: monospace;">₹{{product.price | number:2}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Invoices -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header" style="background-color: #34495e; color: white;">
+                        <h5 class="mb-0">Recent Invoices</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="invoice in stats.recent_invoices">
+                                        <td><code>{{invoice.invoice_number}}</code></td>
+                                        <td>{{invoice.customer_name || 'Walk-in Customer'}}</td>
+                                        <td>{{invoice.created_at | date:'short'}}</td>
+                                        <td>
+                                            <span class="badge" ng-class="{
+                                                'bg-warning': invoice.status === 'draft',
+                                                'bg-success': invoice.status === 'completed',
+                                                'bg-danger': invoice.status === 'cancelled'
+                                            }">{{invoice.status | uppercase}}</span>
+                                        </td>
+                                        <td class="text-end" style="font-family: monospace;">₹{{invoice.grand_total | number:2}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

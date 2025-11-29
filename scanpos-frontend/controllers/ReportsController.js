@@ -1,109 +1,34 @@
-app.controller('ReportsController', ['$scope', 'InvoicesService', function($scope, InvoicesService) {
-    $scope.title = 'Reports & Invoices';
-    $scope.invoices = [];
-    $scope.loading = false;
-    $scope.filters = {
-        status: '',
-        from: '',
-        to: '',
-        page: 1,
-        page_size: 20
-    };
-    $scope.totalPages = 1;
-    $scope.selectedInvoice = null;
+app.controller('ReportsController', ['$scope', 'ReportsService', function($scope, ReportsService) {
+    $scope.title = 'Reports & Analytics';
     
-    // Load invoices
-    $scope.loadInvoices = function() {
-        $scope.loading = true;
-        InvoicesService.listInvoices($scope.filters)
+    // Sales Analytics
+    $scope.salesReport = null;
+    $scope.loadingSales = false;
+    
+    // Set default date range (last 30 days)
+    var today = new Date();
+    var thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    $scope.salesFilters = {
+        from: thirtyDaysAgo.toISOString().split('T')[0],
+        to: today.toISOString().split('T')[0]
+    };
+    
+    // Load sales report
+    $scope.loadSalesReport = function() {
+        $scope.loadingSales = true;
+        ReportsService.getSalesReport($scope.salesFilters.from, $scope.salesFilters.to)
             .then(function(response) {
-                $scope.invoices = response.data.invoices;
-                $scope.totalPages = response.data.pages;
-                $scope.loading = false;
+                $scope.salesReport = response.data;
+                $scope.loadingSales = false;
             })
             .catch(function(error) {
-                console.error('Error loading invoices:', error);
-                $scope.loading = false;
-                alert('Failed to load invoices');
+                console.error('Error loading sales report:', error);
+                $scope.loadingSales = false;
+                alert('Failed to load sales report');
             });
-    };
-    
-    // View invoice details
-    $scope.viewInvoice = function(invoice) {
-        InvoicesService.getInvoice(invoice.id)
-            .then(function(response) {
-                $scope.selectedInvoice = response.data.invoice;
-            })
-            .catch(function(error) {
-                console.error('Error loading invoice details:', error);
-                alert('Failed to load invoice details');
-            });
-    };
-    
-    // Close invoice details
-    $scope.closeDetails = function() {
-        $scope.selectedInvoice = null;
-    };
-    
-    // Delete invoice
-    $scope.deleteInvoice = function(invoice) {
-        var confirmMsg = 'Are you sure you want to delete invoice ' + invoice.invoice_number + '?';
-        if (invoice.status === 'completed' && invoice.items_count > 0) {
-            confirmMsg = 'WARNING: This is a completed invoice with items. Are you sure you want to delete it?';
-        }
-        
-        if (!confirm(confirmMsg)) {
-            return;
-        }
-        
-        InvoicesService.deleteInvoice(invoice.id)
-            .then(function(response) {
-                alert('Invoice deleted successfully');
-                $scope.loadInvoices();
-                if ($scope.selectedInvoice && $scope.selectedInvoice.id === invoice.id) {
-                    $scope.closeDetails();
-                }
-            })
-            .catch(function(error) {
-                console.error('Error deleting invoice:', error);
-                var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to delete invoice';
-                alert(errorMsg);
-            });
-    };
-    
-    // Apply filters
-    $scope.applyFilters = function() {
-        $scope.filters.page = 1;
-        $scope.loadInvoices();
-    };
-    
-    // Clear filters
-    $scope.clearFilters = function() {
-        $scope.filters = {
-            status: '',
-            from: '',
-            to: '',
-            page: 1,
-            page_size: 20
-        };
-        $scope.loadInvoices();
-    };
-    
-    // Pagination
-    $scope.nextPage = function() {
-        if ($scope.filters.page < $scope.totalPages) {
-            $scope.filters.page++;
-            $scope.loadInvoices();
-        }
-    };
-    
-    $scope.prevPage = function() {
-        if ($scope.filters.page > 1) {
-            $scope.filters.page--;
-            $scope.loadInvoices();
-        }
     };
     
     // Initial load
-    $scope.loadInvoices();
+    $scope.loadSalesReport();
 }]);

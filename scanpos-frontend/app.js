@@ -28,6 +28,11 @@ app.config(['$routeProvider', function($routeProvider) {
             controller: 'ProductsController',
             requireAuth: true
         })
+        .when('/invoices', {
+            templateUrl: 'views/invoices.html',
+            controller: 'InvoicesController',
+            requireAuth: true
+        })
         .when('/reports', {
             templateUrl: 'views/reports.html',
             controller: 'ReportsController',

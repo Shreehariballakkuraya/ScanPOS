@@ -18,10 +18,11 @@ def create_app(config_class=Config):
     from . import models
     
     # Register blueprints
-    from .routes import health_bp, auth_bp, products_bp, invoices_bp
+    from .routes import health_bp, auth_bp, products_bp, invoices_bp, reports_bp
     app.register_blueprint(health_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(invoices_bp)
+    app.register_blueprint(reports_bp)
     
     return app
