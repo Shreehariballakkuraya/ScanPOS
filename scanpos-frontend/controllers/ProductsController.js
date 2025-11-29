@@ -1,4 +1,4 @@
-app.controller('ProductsController', ['$scope', 'ProductsService', function($scope, ProductsService) {
+app.controller('ProductsController', ['$scope', 'ProductsService', 'NotificationService', function($scope, ProductsService, NotificationService) {
     $scope.title = 'Products';
     $scope.products = [];
     $scope.loading = false;
@@ -21,7 +21,7 @@ app.controller('ProductsController', ['$scope', 'ProductsService', function($sco
             .catch(function(error) {
                 console.error('Error loading products:', error);
                 $scope.loading = false;
-                alert('Failed to load products');
+                NotificationService.error('Failed to load products');
             });
     };
     
@@ -55,7 +55,7 @@ app.controller('ProductsController', ['$scope', 'ProductsService', function($sco
     // Save product
     $scope.saveProduct = function() {
         if (!$scope.currentProduct.name || !$scope.currentProduct.price) {
-            alert('Name and price are required');
+            NotificationService.warning('Name and price are required');
             return;
         }
         
@@ -73,7 +73,8 @@ app.controller('ProductsController', ['$scope', 'ProductsService', function($sco
         })
         .catch(function(error) {
             console.error('Error saving product:', error);
-            alert(error.data && error.data.message ? error.data.message : 'Failed to save product');
+            var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to save product';
+            NotificationService.error(errorMsg);
         });
     };
     
@@ -92,11 +93,11 @@ app.controller('ProductsController', ['$scope', 'ProductsService', function($sco
         ProductsService.deleteProduct(product.id)
             .then(function(response) {
                 $scope.loadProducts();
-                alert('Product deleted successfully');
+                NotificationService.success('Product deleted successfully');
             })
             .catch(function(error) {
                 console.error('Error deleting product:', error);
-                alert('Failed to delete product');
+                NotificationService.error('Failed to delete product');
             });
     };
     

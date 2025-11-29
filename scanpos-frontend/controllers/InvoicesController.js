@@ -1,4 +1,4 @@
-app.controller('InvoicesController', ['$scope', 'InvoicesService', function($scope, InvoicesService) {
+app.controller('InvoicesController', ['$scope', 'InvoicesService', 'NotificationService', function($scope, InvoicesService, NotificationService) {
     $scope.title = 'Invoices';
     $scope.invoices = [];
     $scope.loading = false;
@@ -24,7 +24,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', function($sco
             .catch(function(error) {
                 console.error('Error loading invoices:', error);
                 $scope.loading = false;
-                alert('Failed to load invoices');
+                NotificationService.error('Failed to load invoices');
             });
     };
     
@@ -36,7 +36,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', function($sco
             })
             .catch(function(error) {
                 console.error('Error loading invoice details:', error);
-                alert('Failed to load invoice details');
+                NotificationService.error('Failed to load invoice details');
             });
     };
     
@@ -58,7 +58,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', function($sco
         
         InvoicesService.deleteInvoice(invoice.id)
             .then(function(response) {
-                alert('Invoice deleted successfully');
+                NotificationService.success('Invoice deleted successfully');
                 $scope.loadInvoices();
                 if ($scope.selectedInvoice && $scope.selectedInvoice.id === invoice.id) {
                     $scope.closeDetails();
@@ -67,7 +67,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', function($sco
             .catch(function(error) {
                 console.error('Error deleting invoice:', error);
                 var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to delete invoice';
-                alert(errorMsg);
+                NotificationService.error(errorMsg);
             });
     };
     

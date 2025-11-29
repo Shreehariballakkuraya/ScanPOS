@@ -1,4 +1,4 @@
-app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', function($scope, $interval, InvoicesService, ProductsService) {
+app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', 'NotificationService', function($scope, $interval, InvoicesService, ProductsService, NotificationService) {
     $scope.title = 'Billing';
     $scope.invoice = null;
     $scope.items = [];
@@ -42,7 +42,7 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             })
             .catch(function(error) {
                 console.error('Error creating invoice:', error);
-                alert('Failed to create invoice');
+                NotificationService.error('Failed to create invoice');
                 $scope.loading = false;
                 throw error;
             });
@@ -101,12 +101,12 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
     // Add product to invoice
     $scope.addProduct = function() {
         if (!$scope.selectedProduct) {
-            alert('Please select a product');
+            NotificationService.warning('Please select a product');
             return;
         }
         
         if ($scope.quantity <= 0) {
-            alert('Quantity must be greater than 0');
+            NotificationService.warning('Quantity must be greater than 0');
             return;
         }
         
@@ -128,7 +128,8 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             })
             .catch(function(error) {
                 console.error('Error adding product:', error);
-                alert(error.data && error.data.message ? error.data.message : 'Failed to add product');
+                var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to add product';
+                NotificationService.error(errorMsg);
             });
     };
     
@@ -150,7 +151,8 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             })
             .catch(function(error) {
                 console.error('Error updating quantity:', error);
-                alert('Failed to update quantity');
+                var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to update quantity';
+                NotificationService.error(errorMsg);
                 $scope.refreshInvoice();
             });
     };
@@ -163,7 +165,7 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             })
             .catch(function(error) {
                 console.error('Error deleting item:', error);
-                alert('Failed to delete item');
+                NotificationService.error('Failed to delete item');
             });
     };
     
@@ -201,12 +203,12 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
     // Complete invoice
     $scope.completeInvoice = function() {
         if (!$scope.invoice) {
-            alert('No invoice to complete. Please add items first.');
+            NotificationService.warning('No invoice to complete. Please add items first.');
             return;
         }
         
         if (!$scope.items || $scope.items.length === 0) {
-            alert('Cannot complete invoice with no items. Please add at least one product.');
+            NotificationService.warning('Cannot complete invoice with no items. Please add at least one product.');
             return;
         }
         
@@ -219,7 +221,7 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
                 $scope.invoice = response.data.invoice;
                 $scope.items = response.data.invoice.items;
                 $scope.stopPolling();
-                alert('Invoice completed successfully! Invoice #' + $scope.invoice.invoice_number);
+                NotificationService.success('Invoice completed successfully! Invoice #' + $scope.invoice.invoice_number);
                 // Optionally redirect or create new invoice
                 if (confirm('Create new invoice?')) {
                     $scope.init();
@@ -227,7 +229,8 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
             })
             .catch(function(error) {
                 console.error('Error completing invoice:', error);
-                alert(error.data && error.data.message ? error.data.message : 'Failed to complete invoice');
+                var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to complete invoice';
+                NotificationService.error(errorMsg);
             });
     };
     

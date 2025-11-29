@@ -1,4 +1,4 @@
-app.controller('DashboardController', ['$scope', 'ReportsService', function($scope, ReportsService) {
+app.controller('DashboardController', ['$scope', 'ReportsService', 'NotificationService', function($scope, ReportsService, NotificationService) {
     $scope.title = 'Dashboard';
     $scope.loading = true;
     $scope.stats = null;
@@ -14,7 +14,7 @@ app.controller('DashboardController', ['$scope', 'ReportsService', function($sco
             .catch(function(error) {
                 console.error('Error loading dashboard stats:', error);
                 $scope.loading = false;
-                alert('Failed to load dashboard statistics');
+                NotificationService.error('Failed to load dashboard statistics');
             });
     };
     

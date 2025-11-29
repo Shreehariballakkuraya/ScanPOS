@@ -1,4 +1,4 @@
-app.controller('ReportsController', ['$scope', 'ReportsService', function($scope, ReportsService) {
+app.controller('ReportsController', ['$scope', 'ReportsService', 'NotificationService', function($scope, ReportsService, NotificationService) {
     $scope.title = 'Reports & Analytics';
     
     // Sales Analytics
@@ -25,7 +25,7 @@ app.controller('ReportsController', ['$scope', 'ReportsService', function($scope
             .catch(function(error) {
                 console.error('Error loading sales report:', error);
                 $scope.loadingSales = false;
-                alert('Failed to load sales report');
+                NotificationService.error('Failed to load sales report');
             });
     };
     
