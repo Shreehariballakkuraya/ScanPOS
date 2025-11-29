@@ -1,0 +1,95 @@
+<div class="container-fluid p-0" style="background: #000; min-height: 100vh; color: #fff;">
+    <!-- Header -->
+    <div style="background: #1a1a1a; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="bi bi-upc-scan"></i> Mobile Scanner</h4>
+            <span class="badge bg-info" ng-if="invoice">{{ invoice.invoice_number }}</span>
+        </div>
+    </div>
+    
+    <!-- Status Message -->
+    <div ng-if="message" class="alert alert-{{ messageType }} m-3" role="alert">
+        {{ message }}
+    </div>
+    
+    <!-- Scanner Container -->
+    <div id="scanner-container" style="position: relative; width: 100%; max-width: 640px; margin: 0 auto;">
+        <div ng-if="!scanning && invoice && invoice.status === 'draft'" class="text-center p-4">
+            <button class="btn btn-lg btn-success" ng-click="startScanner()">
+                <i class="bi bi-camera"></i> Start Camera Scanner
+            </button>
+        </div>
+    </div>
+    
+    <!-- Scanner Controls -->
+    <div ng-if="scanning" class="text-center p-3">
+        <button class="btn btn-danger" ng-click="stopScanner()">
+            <i class="bi bi-stop-circle"></i> Stop Scanner
+        </button>
+    </div>
+    
+    <!-- Recent Scans -->
+    <div ng-if="recentScans.length > 0" class="m-3">
+        <h5 class="mb-3">Recent Scans</h5>
+        <div class="list-group">
+            <div class="list-group-item list-group-item-dark d-flex justify-content-between align-items-center" 
+                 ng-repeat="scan in recentScans">
+                <div>
+                    <strong>{{ scan.name }}</strong><br>
+                    <small class="text-muted">{{ scan.time | date:'HH:mm:ss' }}</small>
+                </div>
+                <span class="badge bg-success rounded-pill">₹{{ scan.price }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="m-3 mt-4" ng-if="!scanning && invoice && invoice.status === 'draft'">
+        <div class="card bg-dark text-white">
+            <div class="card-body">
+                <h6 class="card-title"><i class="bi bi-info-circle"></i> Instructions</h6>
+                <ul class="mb-0">
+                    <li>Tap "Start Camera Scanner" to begin</li>
+                    <li>Point your camera at product barcodes</li>
+                    <li>Items will be automatically added to the invoice</li>
+                    <li>You'll hear a beep on successful scan</li>
+                    <li>Items appear in real-time on the PC billing screen</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Details Link -->
+    <div class="text-center p-3" ng-if="invoice">
+        <a href="#!/billing" class="btn btn-outline-light">
+            <i class="bi bi-arrow-left"></i> Back to Billing
+        </a>
+    </div>
+</div>
+
+<!-- Quagga.js Library for Barcode Scanning -->
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
+
+<style>
+    /* Scanner styling */
+    #scanner-container {
+        position: relative;
+    }
+    
+    #scanner-container video {
+        width: 100%;
+        height: auto;
+        border: 3px solid #28a745;
+        border-radius: 8px;
+    }
+    
+    #scanner-container canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    
+    .drawingBuffer {
+        display: none;
+    }
+</style>

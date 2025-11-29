@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html ng-app="scanPosApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScanPOS - Billing System</title>
+    
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- QRCode.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- App Scripts -->
+    <script src="app.js"></script>
+    <script src="services/AuthService.js"></script>
+    <script src="services/ProductsService.js"></script>
+    <script src="services/InvoicesService.js"></script>
+    <script src="controllers/LoginController.js"></script>
+    <script src="controllers/DashboardController.js"></script>
+    <script src="controllers/BillingController.js"></script>
+    <script src="controllers/ProductsController.js"></script>
+    <script src="controllers/ReportsController.js"></script>
+    <script src="controllers/ScanController.js"></script>
+</head>
+<body>
+    <!-- Top Navigation Bar (only show when authenticated) -->
+    <nav class="navbar navbar-dark bg-primary" ng-show="isAuthenticated()">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">ScanPOS</span>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3" ng-if="currentUser.name">Welcome, {{currentUser.name}}</span>
+                <button class="btn btn-outline-light btn-sm" ng-click="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar (only show when authenticated) -->
+            <nav class="col-md-2 d-md-block bg-light sidebar" ng-show="isAuthenticated()">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/dashboard">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/billing">
+                                Billing
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/products">
+                                Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#!/reports">
+                                Reports
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main Content Area -->
+            <main ng-class="{'col-md-10 ms-sm-auto px-md-4': isAuthenticated(), 'col-12': !isAuthenticated()}">
+                <div ng-view></div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

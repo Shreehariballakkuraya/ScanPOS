@@ -1,0 +1,42 @@
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">ScanPOS Login</h2>
+                    
+                    <div class="alert alert-danger" ng-if="error">
+                        {{error}}
+                    </div>
+                    
+                    <form ng-submit="login()">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" 
+                                   class="form-control" 
+                                   id="email" 
+                                   ng-model="credentials.email" 
+                                   required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="password" 
+                                   ng-model="credentials.password" 
+                                   required>
+                        </div>
+                        
+                        <button type="submit" 
+                                class="btn btn-primary w-100" 
+                                ng-disabled="loading">
+                            <span ng-if="!loading">Login</span>
+                            <span ng-if="loading">Logging in...</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

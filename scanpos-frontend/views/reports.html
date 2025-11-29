@@ -1,0 +1,199 @@
+<div class="container mt-4">
+    <h2 class="mb-4">Reports & Invoices</h2>
+    
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" ng-model="filters.status">
+                        <option value="">All</option>
+                        <option value="draft">Draft</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">From Date</label>
+                    <input type="date" class="form-control" ng-model="filters.from">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">To Date</label>
+                    <input type="date" class="form-control" ng-model="filters.to">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary me-2" ng-click="applyFilters()">
+                        <i class="bi bi-funnel"></i> Filter
+                    </button>
+                    <button class="btn btn-outline-secondary" ng-click="clearFilters()">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoices List -->
+    <div class="card">
+        <div class="card-body">
+            <div ng-show="loading" class="text-center py-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            
+            <div ng-show="!loading && invoices.length === 0" class="text-center py-4">
+                <p class="text-muted">No invoices found</p>
+            </div>
+            
+            <div ng-show="!loading && invoices.length > 0" class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Items</th>
+                            <th>Subtotal</th>
+                            <th>Tax</th>
+                            <th>Discount</th>
+                            <th>Total</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="invoice in invoices">
+                            <td><strong>{{ invoice.invoice_number }}</strong></td>
+                            <td>{{ invoice.created_at | date:'short' }}</td>
+                            <td>
+                                <span class="badge" ng-class="{
+                                    'bg-warning': invoice.status === 'draft',
+                                    'bg-success': invoice.status === 'completed',
+                                    'bg-secondary': invoice.status === 'cancelled'
+                                }">
+                                    {{ invoice.status | uppercase }}
+                                </span>
+                            </td>
+                            <td>{{ invoice.items_count }}</td>
+                            <td>₹{{ invoice.subtotal_amount }}</td>
+                            <td>₹{{ invoice.total_tax }}</td>
+                            <td>₹{{ invoice.discount_amount }}</td>
+                            <td><strong>₹{{ invoice.total_amount }}</strong></td>
+                            <td>
+                                <button class="btn btn-sm btn-info me-1" ng-click="viewInvoice(invoice)">
+                                    <i class="bi bi-eye"></i> View
+                                </button>
+                                <button class="btn btn-sm btn-danger" ng-click="deleteInvoice(invoice)" 
+                                        title="Delete invoice">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        Showing page {{ filters.page }} of {{ totalPages }}
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-2" 
+                                ng-click="prevPage()" ng-disabled="filters.page === 1">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" 
+                                ng-click="nextPage()" ng-disabled="filters.page === totalPages">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Details Modal -->
+    <div ng-show="selectedInvoice" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Invoice Details - {{ selectedInvoice.invoice_number }}</h5>
+                    <button type="button" class="btn-close" ng-click="closeDetails()"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Invoice Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Invoice Number:</strong> {{ selectedInvoice.invoice_number }}</p>
+                            <p><strong>Date:</strong> {{ selectedInvoice.created_at | date:'medium' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong> 
+                                <span class="badge" ng-class="{
+                                    'bg-warning': selectedInvoice.status === 'draft',
+                                    'bg-success': selectedInvoice.status === 'completed',
+                                    'bg-secondary': selectedInvoice.status === 'cancelled'
+                                }">
+                                    {{ selectedInvoice.status | uppercase }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Items -->
+                    <h6>Items</h6>
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Tax%</th>
+                                <th>Tax</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="item in selectedInvoice.items">
+                                <td>{{ item.product_name }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>₹{{ item.unit_price }}</td>
+                                <td>{{ item.tax_percent }}%</td>
+                                <td>₹{{ item.line_tax }}</td>
+                                <td><strong>₹{{ item.line_total }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <!-- Totals -->
+                    <div class="row mt-3">
+                        <div class="col-md-6 offset-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td>Subtotal:</td>
+                                    <td class="text-end"><strong>₹{{ selectedInvoice.subtotal_amount }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Tax:</td>
+                                    <td class="text-end"><strong>₹{{ selectedInvoice.total_tax }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Discount:</td>
+                                    <td class="text-end"><strong>-₹{{ selectedInvoice.discount_amount }}</strong></td>
+                                </tr>
+                                <tr class="border-top">
+                                    <td><h5>Grand Total:</h5></td>
+                                    <td class="text-end"><h5 class="text-primary">₹{{ selectedInvoice.total_amount }}</h5></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" ng-click="closeDetails()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

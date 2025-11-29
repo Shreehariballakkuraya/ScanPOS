@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ScanPOS - Debug Test</title>
+</head>
+<body>
+    <h1>ScanPOS Debug Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        var results = document.getElementById('results');
+        
+        // Test 1: Check if backend is running
+        results.innerHTML += '<h2>Test 1: Backend Health Check</h2>';
+        fetch('http://localhost:5000/health')
+            .then(response => response.json())
+            .then(data => {
+                results.innerHTML += '<p style="color: green;">✓ Backend is running: ' + JSON.stringify(data) + '</p>';
+            })
+            .catch(error => {
+                results.innerHTML += '<p style="color: red;">✗ Backend connection failed: ' + error + '</p>';
+            });
+        
+        // Test 2: Try login
+        results.innerHTML += '<h2>Test 2: Login API</h2>';
+        fetch('http://localhost:5000/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: 'admin@scanpos.com',
+                password: 'admin123'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.access_token) {
+                results.innerHTML += '<p style="color: green;">✓ Login successful!</p>';
+                results.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } else {
+                results.innerHTML += '<p style="color: red;">✗ Login failed: ' + JSON.stringify(data) + '</p>';
+            }
+        })
+        .catch(error => {
+            results.innerHTML += '<p style="color: red;">✗ Login API failed: ' + error + '</p>';
+        });
+    </script>
+</body>
+</html>

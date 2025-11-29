@@ -1,0 +1,36 @@
+<div class="py-4">
+    <h2 class="mb-4">Dashboard</h2>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Sales</h5>
+                    <h3>₹{{stats.todaySales | number:2}}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-success text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">This Week's Sales</h5>
+                    <h3>₹{{stats.weekSales | number:2}}</h3>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card bg-info text-white mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Invoice Count</h5>
+                    <h3>{{stats.invoiceCount}}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info mt-4">
+        Welcome to ScanPOS! This is your dashboard where you'll see sales statistics and quick actions.
+    </div>
+</div>
