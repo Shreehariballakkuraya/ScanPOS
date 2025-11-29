@@ -1,4 +1,4 @@
-app.controller('ProductsController', ['$scope', 'ProductsService', 'NotificationService', function($scope, ProductsService, NotificationService) {
+app.controller('ProductsController', ['$scope', 'ProductsService', 'NotificationService', 'ErrorHandlerService', function($scope, ProductsService, NotificationService, ErrorHandlerService) {
     $scope.title = 'Products';
     $scope.products = [];
     $scope.loading = false;
@@ -12,16 +12,19 @@ app.controller('ProductsController', ['$scope', 'ProductsService', 'Notification
     // Load products
     $scope.loadProducts = function() {
         $scope.loading = true;
-        ProductsService.getProducts($scope.search, $scope.currentPage)
+        
+        ErrorHandlerService.retryOperation(function() {
+            return ProductsService.getProducts($scope.search, $scope.currentPage);
+        }, 2, 1000)
             .then(function(response) {
                 $scope.products = response.data.products;
                 $scope.totalPages = response.data.pages;
-                $scope.loading = false;
             })
             .catch(function(error) {
-                console.error('Error loading products:', error);
+                ErrorHandlerService.handleError(error, 'Loading products');
+            })
+            .finally(function() {
                 $scope.loading = false;
-                NotificationService.error('Failed to load products');
             });
     };
     
@@ -59,6 +62,7 @@ app.controller('ProductsController', ['$scope', 'ProductsService', 'Notification
             return;
         }
         
+        $scope.loading = true;
         var promise;
         if ($scope.editMode) {
             promise = ProductsService.updateProduct($scope.currentProduct.id, $scope.currentProduct);
@@ -69,12 +73,13 @@ app.controller('ProductsController', ['$scope', 'ProductsService', 'Notification
         promise.then(function(response) {
             $scope.showForm = false;
             $scope.loadProducts();
-            alert($scope.editMode ? 'Product updated successfully' : 'Product created successfully');
+            NotificationService.success($scope.editMode ? 'Product updated successfully' : 'Product created successfully');
         })
         .catch(function(error) {
-            console.error('Error saving product:', error);
-            var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to save product';
-            NotificationService.error(errorMsg);
+            ErrorHandlerService.handleError(error, 'Saving product');
+        })
+        .finally(function() {
+            $scope.loading = false;
         });
     };
     

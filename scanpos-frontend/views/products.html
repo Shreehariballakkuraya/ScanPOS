@@ -25,29 +25,78 @@
             <h5>{{ editMode ? 'Edit Product' : 'Add New Product' }}</h5>
         </div>
         <div class="card-body">
-            <form ng-submit="saveProduct()">
+            <form ng-submit="saveProduct()" name="productForm" novalidate>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Product Name *</label>
-                        <input type="text" class="form-control" ng-model="currentProduct.name" required>
+                        <label class="form-label required">Product Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               ng-model="currentProduct.name" 
+                               name="productName"
+                               required
+                               minlength="3"
+                               maxlength="200">
+                        <div class="validation-error" ng-show="productForm.productName.$touched && productForm.productName.$error.required">
+                            Product name is required
+                        </div>
+                        <div class="validation-error" ng-show="productForm.productName.$touched && productForm.productName.$error.minlength">
+                            Product name must be at least 3 characters
+                        </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Barcode</label>
-                        <input type="text" class="form-control" ng-model="currentProduct.barcode">
+                        <input type="text" 
+                               class="form-control" 
+                               ng-model="currentProduct.barcode"
+                               name="barcode"
+                               maxlength="100">
+                        <small class="form-text">Optional - Leave empty if not applicable</small>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Price (₹) *</label>
-                        <input type="number" step="0.01" class="form-control" ng-model="currentProduct.price" required>
+                        <label class="form-label required">Price (₹)</label>
+                        <input type="number" 
+                               step="0.01" 
+                               class="form-control" 
+                               ng-model="currentProduct.price"
+                               name="price"
+                               required
+                               min="0.01">
+                        <div class="validation-error" ng-show="productForm.price.$touched && productForm.price.$error.required">
+                            Price is required
+                        </div>
+                        <div class="validation-error" ng-show="productForm.price.$touched && productForm.price.$error.min">
+                            Price must be greater than 0
+                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Tax %</label>
-                        <input type="number" step="0.01" class="form-control" ng-model="currentProduct.tax_percent">
+                        <input type="number" 
+                               step="0.01" 
+                               class="form-control" 
+                               ng-model="currentProduct.tax_percent"
+                               name="taxPercent"
+                               min="0"
+                               max="100">
+                        <div class="validation-error" ng-show="productForm.taxPercent.$touched && (productForm.taxPercent.$error.min || productForm.taxPercent.$error.max)">
+                            Tax must be between 0 and 100
+                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label class="form-label">Stock Quantity</label>
-                        <input type="number" class="form-control" ng-model="currentProduct.stock_qty">
+                        <label class="form-label required">Stock Quantity</label>
+                        <input type="number" 
+                               class="form-control" 
+                               ng-model="currentProduct.stock_qty"
+                               name="stockQty"
+                               required
+                               min="0">
+                        <div class="validation-error" ng-show="productForm.stockQty.$touched && productForm.stockQty.$error.required">
+                            Stock quantity is required
+                        </div>
+                        <div class="validation-error" ng-show="productForm.stockQty.$touched && productForm.stockQty.$error.min">
+                            Stock cannot be negative
+                        </div>
                     </div>
                 </div>
                 <div class="mb-3">
@@ -57,10 +106,13 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-check-circle"></i> Save
+                    <button type="submit" 
+                            class="btn btn-success" 
+                            ng-class="{'btn-loading': loading}"
+                            ng-disabled="productForm.$invalid || loading">
+                        <i class="bi bi-check-circle"></i> {{loading ? 'Saving...' : 'Save'}}
                     </button>
-                    <button type="button" class="btn btn-secondary" ng-click="cancelForm()">
+                    <button type="button" class="btn btn-secondary" ng-click="cancelForm()" ng-disabled="loading">
                         <i class="bi bi-x-circle"></i> Cancel
                     </button>
                 </div>

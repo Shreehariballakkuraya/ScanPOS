@@ -1,4 +1,4 @@
-app.controller('ReportsController', ['$scope', 'ReportsService', 'NotificationService', function($scope, ReportsService, NotificationService) {
+app.controller('ReportsController', ['$scope', 'ReportsService', 'NotificationService', 'ErrorHandlerService', function($scope, ReportsService, NotificationService, ErrorHandlerService) {
     $scope.title = 'Reports & Analytics';
     
     // Sales Analytics
@@ -17,15 +17,18 @@ app.controller('ReportsController', ['$scope', 'ReportsService', 'NotificationSe
     // Load sales report
     $scope.loadSalesReport = function() {
         $scope.loadingSales = true;
-        ReportsService.getSalesReport($scope.salesFilters.from, $scope.salesFilters.to)
+        
+        ErrorHandlerService.retryOperation(function() {
+            return ReportsService.getSalesReport($scope.salesFilters.from, $scope.salesFilters.to);
+        }, 2, 1000)
             .then(function(response) {
                 $scope.salesReport = response.data;
-                $scope.loadingSales = false;
             })
             .catch(function(error) {
-                console.error('Error loading sales report:', error);
+                ErrorHandlerService.handleError(error, 'Loading sales report');
+            })
+            .finally(function() {
                 $scope.loadingSales = false;
-                NotificationService.error('Failed to load sales report');
             });
     };
     

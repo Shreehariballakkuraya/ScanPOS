@@ -9,28 +9,44 @@
                         {{error}}
                     </div>
                     
-                    <form ng-submit="login()">
+                    <form ng-submit="login()" name="loginForm" novalidate>
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email</label>
+                            <label for="email" class="form-label required">Email</label>
                             <input type="email" 
                                    class="form-control" 
                                    id="email" 
+                                   name="email"
                                    ng-model="credentials.email" 
                                    required>
+                            <div class="validation-error" ng-show="loginForm.email.$touched && loginForm.email.$error.required">
+                                Email is required
+                            </div>
+                            <div class="validation-error" ng-show="loginForm.email.$touched && loginForm.email.$error.email">
+                                Please enter a valid email address
+                            </div>
                         </div>
                         
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
+                            <label for="password" class="form-label required">Password</label>
                             <input type="password" 
                                    class="form-control" 
                                    id="password" 
+                                   name="password"
                                    ng-model="credentials.password" 
-                                   required>
+                                   required
+                                   minlength="6">
+                            <div class="validation-error" ng-show="loginForm.password.$touched && loginForm.password.$error.required">
+                                Password is required
+                            </div>
+                            <div class="validation-error" ng-show="loginForm.password.$touched && loginForm.password.$error.minlength">
+                                Password must be at least 6 characters
+                            </div>
                         </div>
                         
                         <button type="submit" 
                                 class="btn btn-primary w-100" 
-                                ng-disabled="loading">
+                                ng-class="{'btn-loading': loading}"
+                                ng-disabled="loginForm.$invalid || loading">
                             <span ng-if="!loading">Login</span>
                             <span ng-if="loading">Logging in...</span>
                         </button>

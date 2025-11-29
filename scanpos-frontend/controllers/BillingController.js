@@ -1,4 +1,4 @@
-app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', 'NotificationService', function($scope, $interval, InvoicesService, ProductsService, NotificationService) {
+app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', 'NotificationService', 'ErrorHandlerService', function($scope, $interval, InvoicesService, ProductsService, NotificationService, ErrorHandlerService) {
     $scope.title = 'Billing';
     $scope.invoice = null;
     $scope.items = [];
@@ -29,11 +29,12 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
         }
         
         $scope.loading = true;
-        return InvoicesService.createInvoice()
+        return ErrorHandlerService.retryOperation(function() {
+            return InvoicesService.createInvoice();
+        }, 2, 1000)
             .then(function(response) {
                 $scope.invoice = response.data.invoice;
                 $scope.items = [];
-                $scope.loading = false;
                 // Generate QR code for mobile scanner
                 $scope.generateQRCode();
                 // Start polling for updates
@@ -41,10 +42,11 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
                 return $scope.invoice;
             })
             .catch(function(error) {
-                console.error('Error creating invoice:', error);
-                NotificationService.error('Failed to create invoice');
-                $scope.loading = false;
+                ErrorHandlerService.handleError(error, 'Creating invoice');
                 throw error;
+            })
+            .finally(function() {
+                $scope.loading = false;
             });
     };
     
@@ -87,7 +89,8 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
                 $scope.products = response.data.products;
             })
             .catch(function(error) {
-                console.error('Error searching products:', error);
+                ErrorHandlerService.handleError(error, 'Searching products');
+                $scope.products = [];
             });
     };
     

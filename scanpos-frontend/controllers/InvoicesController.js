@@ -1,4 +1,4 @@
-app.controller('InvoicesController', ['$scope', 'InvoicesService', 'NotificationService', function($scope, InvoicesService, NotificationService) {
+app.controller('InvoicesController', ['$scope', 'InvoicesService', 'NotificationService', 'ErrorHandlerService', function($scope, InvoicesService, NotificationService, ErrorHandlerService) {
     $scope.title = 'Invoices';
     $scope.invoices = [];
     $scope.loading = false;
@@ -15,16 +15,19 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', 'Notification
     // Load invoices
     $scope.loadInvoices = function() {
         $scope.loading = true;
-        InvoicesService.listInvoices($scope.filters)
+        
+        ErrorHandlerService.retryOperation(function() {
+            return InvoicesService.listInvoices($scope.filters);
+        }, 2, 1000)
             .then(function(response) {
                 $scope.invoices = response.data.invoices;
                 $scope.totalPages = response.data.pages;
-                $scope.loading = false;
             })
             .catch(function(error) {
-                console.error('Error loading invoices:', error);
+                ErrorHandlerService.handleError(error, 'Loading invoices');
+            })
+            .finally(function() {
                 $scope.loading = false;
-                NotificationService.error('Failed to load invoices');
             });
     };
     
@@ -35,8 +38,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', 'Notification
                 $scope.selectedInvoice = response.data.invoice;
             })
             .catch(function(error) {
-                console.error('Error loading invoice details:', error);
-                NotificationService.error('Failed to load invoice details');
+                ErrorHandlerService.handleError(error, 'Loading invoice details');
             });
     };
     
@@ -65,9 +67,7 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', 'Notification
                 }
             })
             .catch(function(error) {
-                console.error('Error deleting invoice:', error);
-                var errorMsg = error.data && error.data.message ? error.data.message : 'Failed to delete invoice';
-                NotificationService.error(errorMsg);
+                ErrorHandlerService.handleError(error, 'Deleting invoice');
             });
     };
     

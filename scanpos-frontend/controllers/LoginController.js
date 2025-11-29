@@ -1,4 +1,4 @@
-app.controller('LoginController', ['$scope', '$location', '$http', '$window', 'API_URL', function($scope, $location, $http, $window, API_URL) {
+app.controller('LoginController', ['$scope', '$location', '$http', '$window', 'API_URL', 'ErrorHandlerService', function($scope, $location, $http, $window, API_URL, ErrorHandlerService) {
     $scope.credentials = {
         email: '',
         password: ''
@@ -15,13 +15,13 @@ app.controller('LoginController', ['$scope', '$location', '$http', '$window', 'A
         $scope.error = '';
         $scope.loading = true;
         
-        $http.post(API_URL + '/api/auth/login', {
-            email: $scope.credentials.email,
-            password: $scope.credentials.password
-        })
+        ErrorHandlerService.retryOperation(function() {
+            return $http.post(API_URL + '/api/auth/login', {
+                email: $scope.credentials.email,
+                password: $scope.credentials.password
+            });
+        }, 1, 1000) // Only retry once for login
         .then(function(response) {
-            $scope.loading = false;
-            
             // Store token and user
             $window.localStorage.setItem('scanpos_token', response.data.access_token);
             $window.localStorage.setItem('scanpos_user', JSON.stringify(response.data.user));
@@ -30,10 +30,14 @@ app.controller('LoginController', ['$scope', '$location', '$http', '$window', 'A
             $location.path('/dashboard');
         })
         .catch(function(error) {
+            var errorInfo = ErrorHandlerService.parseError(error);
+            $scope.error = errorInfo.message;
+            
+            // Log to console for debugging
+            console.error('Login error:', error);
+        })
+        .finally(function() {
             $scope.loading = false;
-            $scope.error = error.data && error.data.message 
-                ? error.data.message 
-                : 'Login failed. Please check your credentials.';
         });
     };
 }]);
