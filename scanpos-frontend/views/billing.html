@@ -471,8 +471,9 @@
                             </div>
                             <div class="col-md-3">
                                 <label class="form-label mb-1">&nbsp;</label>
-                                <button class="btn btn-add-item w-100" ng-click="addProduct()">
-                                    <i class="bi bi-plus-lg"></i> ADD
+                                <button class="btn btn-add-item w-100" ng-click="addProduct()" ng-disabled="loading || !selectedProduct">
+                                    <span ng-if="!loading"><i class="bi bi-plus-lg"></i> ADD</span>
+                                    <span ng-if="loading"><span class="btn-spinner"></span> ADDING...</span>
                                 </button>
                             </div>
                         </div>
@@ -565,10 +566,11 @@
                     
                     <!-- Actions Panel -->
                     <div class="actions-panel" ng-show="invoice && invoice.status === 'draft'">
-                        <button class="btn btn-complete-invoice" ng-click="completeInvoice()" ng-disabled="items.length === 0">
-                            <i class="bi bi-check2-circle"></i> COMPLETE INVOICE
+                        <button class="btn btn-complete-invoice" ng-click="completeInvoice()" ng-disabled="items.length === 0 || loading">
+                            <span ng-if="!loading"><i class="bi bi-check2-circle"></i> COMPLETE INVOICE</span>
+                            <span ng-if="loading"><span class="btn-spinner"></span> PROCESSING...</span>
                         </button>
-                        <button class="btn btn-cancel-invoice" ng-click="init()">
+                        <button class="btn btn-cancel-invoice" ng-click="init()" ng-disabled="loading">
                             <i class="bi bi-x-circle"></i> CANCEL & NEW
                         </button>
                     </div>

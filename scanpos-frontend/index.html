@@ -20,6 +20,8 @@
     
     <!-- Validation Styles -->
     <link rel="stylesheet" href="css/validation.css">
+    <link rel="stylesheet" href="css/loading.css">
+    <link rel="stylesheet" href="css/role-access.css">
     
     <!-- QRCode.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -33,9 +35,15 @@
     <script src="services/ProductsService.js"></script>
     <script src="services/InvoicesService.js"></script>
     <script src="services/ReportsService.js"></script>
+    <script src="services/UsersService.js"></script>
     <script src="services/NotificationService.js"></script>
     <script src="services/ErrorHandlerService.js"></script>
     <script src="services/HttpInterceptor.js"></script>
+    <script src="services/LoadingService.js"></script>
+    <script src="services/DebounceService.js"></script>
+    <script src="directives/LoadingDirectives.js"></script>
+    <script src="directives/DebounceDirectives.js"></script>
+    <script src="directives/RoleDirectives.js"></script>
     <script src="controllers/LoginController.js"></script>
     <script src="controllers/DashboardController.js"></script>
     <script src="controllers/BillingController.js"></script>
@@ -43,15 +51,23 @@
     <script src="controllers/InvoicesController.js"></script>
     <script src="controllers/ReportsController.js"></script>
     <script src="controllers/ScanController.js"></script>
+    <script src="controllers/UsersController.js"></script>
 </head>
 <body>
     <!-- Top Navigation Bar (only show when authenticated) -->
     <nav class="navbar navbar-dark bg-primary" ng-show="isAuthenticated()">
         <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">ScanPOS</span>
+            <span class="navbar-brand mb-0 h1">
+                <i class="bi bi-shop"></i> ScanPOS
+            </span>
             <div class="d-flex align-items-center">
-                <span class="text-white me-3" ng-if="currentUser.name">Welcome, {{currentUser.name}}</span>
-                <button class="btn btn-outline-light btn-sm" ng-click="logout()">Logout</button>
+                <span class="text-white me-3" ng-if="currentUser.name">
+                    <i class="bi bi-person-circle"></i> {{currentUser.name}}
+                    <span class="badge bg-secondary ms-2">{{currentUser.role | uppercase}}</span>
+                </span>
+                <button class="btn btn-outline-light btn-sm" ng-click="logout()">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </button>
             </div>
         </div>
     </nav>
@@ -64,27 +80,35 @@
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="#!/dashboard">
-                                Dashboard
+                                <i class="bi bi-speedometer2"></i> Dashboard
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#!/billing">
-                                Billing
+                                <i class="bi bi-calculator"></i> Billing
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" admin-only>
                             <a class="nav-link" href="#!/products">
-                                Products
+                                <i class="bi bi-box-seam"></i> Products
+                                <span class="badge bg-warning text-dark ms-2">Admin</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#!/invoices">
-                                Invoices
+                                <i class="bi bi-receipt"></i> Invoices
                             </a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item" admin-only>
                             <a class="nav-link" href="#!/reports">
-                                Reports
+                                <i class="bi bi-graph-up"></i> Reports
+                                <span class="badge bg-warning text-dark ms-2">Admin</span>
+                            </a>
+                        </li>
+                        <li class="nav-item" admin-only>
+                            <a class="nav-link" href="#!/users">
+                                <i class="bi bi-people"></i> Users
+                                <span class="badge bg-warning text-dark ms-2">Admin</span>
                             </a>
                         </li>
                     </ul>

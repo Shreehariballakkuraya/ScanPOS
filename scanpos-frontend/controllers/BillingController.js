@@ -1,4 +1,4 @@
-app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', 'NotificationService', 'ErrorHandlerService', function($scope, $interval, InvoicesService, ProductsService, NotificationService, ErrorHandlerService) {
+app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', 'ProductsService', 'NotificationService', 'ErrorHandlerService', 'DebounceService', function($scope, $interval, InvoicesService, ProductsService, NotificationService, ErrorHandlerService, DebounceService) {
     $scope.title = 'Billing';
     $scope.invoice = null;
     $scope.items = [];
@@ -77,21 +77,24 @@ app.controller('BillingController', ['$scope', '$interval', 'InvoicesService', '
         }
     };
     
-    // Search products
+    // Search products with debouncing
     $scope.searchProducts = function() {
         if (!$scope.searchText || $scope.searchText.length < 2) {
             $scope.products = [];
+            DebounceService.cancel('billingSearch'); // Cancel pending search
             return;
         }
         
-        ProductsService.getProducts($scope.searchText, 1, 10)
-            .then(function(response) {
-                $scope.products = response.data.products;
-            })
-            .catch(function(error) {
-                ErrorHandlerService.handleError(error, 'Searching products');
-                $scope.products = [];
-            });
+        DebounceService.debounce('billingSearch', function() {
+            ProductsService.getProducts($scope.searchText, 1, 10)
+                .then(function(response) {
+                    $scope.products = response.data.products;
+                })
+                .catch(function(error) {
+                    ErrorHandlerService.handleError(error, 'Searching products');
+                    $scope.products = [];
+                });
+        }, 300); // 300ms delay for faster response in billing
     };
     
     // Select product from search

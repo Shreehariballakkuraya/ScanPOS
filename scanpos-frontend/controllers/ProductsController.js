@@ -1,4 +1,4 @@
-app.controller('ProductsController', ['$scope', 'ProductsService', 'NotificationService', 'ErrorHandlerService', function($scope, ProductsService, NotificationService, ErrorHandlerService) {
+app.controller('ProductsController', ['$scope', 'ProductsService', 'NotificationService', 'ErrorHandlerService', 'DebounceService', function($scope, ProductsService, NotificationService, ErrorHandlerService, DebounceService) {
     $scope.title = 'Products';
     $scope.products = [];
     $scope.loading = false;
@@ -8,6 +8,7 @@ app.controller('ProductsController', ['$scope', 'ProductsService', 'Notification
     $scope.showForm = false;
     $scope.editMode = false;
     $scope.currentProduct = {};
+    $scope.searching = false;
     
     // Load products
     $scope.loadProducts = function() {
@@ -28,7 +29,17 @@ app.controller('ProductsController', ['$scope', 'ProductsService', 'Notification
             });
     };
     
-    // Search products
+    // Debounced search function
+    $scope.debouncedSearch = function() {
+        $scope.searching = true;
+        DebounceService.debounce('productSearch', function() {
+            $scope.currentPage = 1;
+            $scope.loadProducts();
+            $scope.searching = false;
+        }, 500); // 500ms delay
+    };
+    
+    // Search products (immediate)
     $scope.searchProducts = function() {
         $scope.currentPage = 1;
         $scope.loadProducts();

@@ -48,4 +48,32 @@ app.service('AuthService', ['$http', '$window', 'API_URL', function($http, $wind
     service.setUser = function(user) {
         $window.localStorage.setItem(USER_KEY, JSON.stringify(user));
     };
+    
+    // Check if user has specific role
+    service.hasRole = function(role) {
+        var user = service.getUser();
+        return user && user.role === role;
+    };
+    
+    // Check if user is admin
+    service.isAdmin = function() {
+        return service.hasRole('admin');
+    };
+    
+    // Check if user is cashier
+    service.isCashier = function() {
+        return service.hasRole('cashier');
+    };
+    
+    // Get current user's role
+    service.getUserRole = function() {
+        var user = service.getUser();
+        return user ? user.role : null;
+    };
+    
+    // Check if user has any of the specified roles
+    service.hasAnyRole = function(roles) {
+        var userRole = service.getUserRole();
+        return roles.indexOf(userRole) !== -1;
+    };
 }]);

@@ -1,10 +1,18 @@
 <div class="py-4">
     <h2 class="mb-4">Dashboard</h2>
     
-    <div ng-if="loading" class="text-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
+    <!-- User Role Info -->
+    <div class="alert alert-info mb-4" ng-if="currentUser.role">
+        <i class="bi bi-info-circle"></i> 
+        <strong>Your Role:</strong> {{currentUser.role | uppercase}}
+        <span ng-if="currentUser.role === 'admin'"> - You have full access to all features</span>
+        <span ng-if="currentUser.role === 'cashier'"> - Billing and invoice access. Products and Reports require admin access.</span>
+    </div>
+    
+    <!-- Loading State -->
+    <div ng-if="loading" class="inline-loader">
+        <div class="spinner spinner-lg"></div>
+        <div class="loading-text">Loading dashboard statistics...</div>
     </div>
     
     <div ng-if="!loading && stats">

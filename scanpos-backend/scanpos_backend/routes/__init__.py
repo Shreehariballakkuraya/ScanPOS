@@ -20,3 +20,6 @@ from .invoices import invoices_bp
 
 # Import and expose reports blueprint
 from .reports import reports_bp
+
+# Import and expose users blueprint
+from .users import users_bp

@@ -1,6 +1,18 @@
 // ScanPOS AngularJS Application
 var app = angular.module('scanPosApp', ['ngRoute']);
 
+// Range filter for pagination
+app.filter('range', function() {
+    return function(input, start, end) {
+        start = parseInt(start);
+        end = parseInt(end);
+        for (var i = start; i <= end; i++) {
+            input.push(i);
+        }
+        return input;
+    };
+});
+
 // API Configuration
 // Use current hostname but with port 5000 for API
 // This way it works on both PC (localhost) and phone (IP address)
@@ -26,7 +38,8 @@ app.config(['$routeProvider', function($routeProvider) {
         .when('/products', {
             templateUrl: 'views/products.html',
             controller: 'ProductsController',
-            requireAuth: true
+            requireAuth: true,
+            requiredRole: 'admin'  // Only admins can manage products
         })
         .when('/invoices', {
             templateUrl: 'views/invoices.html',
@@ -36,7 +49,14 @@ app.config(['$routeProvider', function($routeProvider) {
         .when('/reports', {
             templateUrl: 'views/reports.html',
             controller: 'ReportsController',
-            requireAuth: true
+            requireAuth: true,
+            requiredRole: 'admin'  // Only admins can view reports
+        })
+        .when('/users', {
+            templateUrl: 'views/users.html',
+            controller: 'UsersController',
+            requireAuth: true,
+            requiredRole: 'admin'  // Only admins can manage users
         })
         .when('/scan', {
             templateUrl: 'views/scan.html',
@@ -74,7 +94,7 @@ app.config(['$httpProvider', function($httpProvider) {
 }]);
 
 // Run block - Check authentication on route change
-app.run(['$rootScope', '$location', '$window', function($rootScope, $location, $window) {
+app.run(['$rootScope', '$location', '$window', 'AuthService', function($rootScope, $location, $window, AuthService) {
     
     // Initialize authentication state
     function updateAuthState() {
@@ -83,6 +103,7 @@ app.run(['$rootScope', '$location', '$window', function($rootScope, $location, $
         
         $rootScope.isAuth = !!token;
         $rootScope.currentUser = userJson ? JSON.parse(userJson) : {};
+        $rootScope.userRole = $rootScope.currentUser.role || null;
     }
     
     // Update on initial load
@@ -98,6 +119,14 @@ app.run(['$rootScope', '$location', '$window', function($rootScope, $location, $
             $location.path('/login');
         }
         
+        // Check role-based access
+        if (next && next.requiredRole && $rootScope.isAuth) {
+            if (!AuthService.hasRole(next.requiredRole)) {
+                event.preventDefault();
+                $location.path('/dashboard');
+            }
+        }
+        
         // If user is authenticated and tries to go to login, redirect to dashboard
         if (next && next.$$route && next.$$route.originalPath === '/login' && $rootScope.isAuth) {
             event.preventDefault();
@@ -110,9 +139,21 @@ app.run(['$rootScope', '$location', '$window', function($rootScope, $location, $
         updateAuthState();
     });
     
-    // Helper function for templates
+    // Helper functions for templates
     $rootScope.isAuthenticated = function() {
         return $rootScope.isAuth;
+    };
+    
+    $rootScope.isAdmin = function() {
+        return AuthService.isAdmin();
+    };
+    
+    $rootScope.isCashier = function() {
+        return AuthService.isCashier();
+    };
+    
+    $rootScope.hasRole = function(role) {
+        return AuthService.hasRole(role);
     };
     
     // Logout function

@@ -1,4 +1,4 @@
-app.controller('InvoicesController', ['$scope', 'InvoicesService', 'NotificationService', 'ErrorHandlerService', function($scope, InvoicesService, NotificationService, ErrorHandlerService) {
+app.controller('InvoicesController', ['$scope', 'InvoicesService', 'NotificationService', 'ErrorHandlerService', 'AuthService', function($scope, InvoicesService, NotificationService, ErrorHandlerService, AuthService) {
     $scope.title = 'Invoices';
     $scope.invoices = [];
     $scope.loading = false;
@@ -49,6 +49,12 @@ app.controller('InvoicesController', ['$scope', 'InvoicesService', 'Notification
     
     // Delete invoice
     $scope.deleteInvoice = function(invoice) {
+        // Check if user is admin
+        if (!AuthService.isAdmin()) {
+            NotificationService.error('Access denied: Only admins can delete invoices');
+            return;
+        }
+        
         var confirmMsg = 'Are you sure you want to delete invoice ' + invoice.invoice_number + '?';
         if (invoice.status === 'completed' && invoice.items_count > 0) {
             confirmMsg = 'WARNING: This is a completed invoice with items. Are you sure you want to delete it?';

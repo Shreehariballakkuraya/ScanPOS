@@ -1,0 +1,203 @@
+/* Role-Based Access Control Styles */
+
+/* Role badges */
+.role-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-badge.admin {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.role-badge.cashier {
+    background-color: #3498db;
+    color: white;
+}
+
+/* Access restricted elements */
+.access-restricted {
+    opacity: 0.5;
+    pointer-events: none;
+    position: relative;
+}
+
+.access-restricted::after {
+    content: '🔒';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    opacity: 0.7;
+}
+
+/* Permission denied messages */
+.permission-alert {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+}
+
+.permission-alert i {
+    font-size: 24px;
+    margin-right: 15px;
+}
+
+/* Admin-only indicators */
+.admin-only-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: #f39c12;
+    color: white;
+    border-radius: 3px;
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+/* Sidebar role indicators */
+.sidebar .nav-link .badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+}
+
+/* User info in navbar */
+.navbar .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.navbar .user-role {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* Disabled state for role-restricted buttons */
+button[disabled].role-restricted {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+button[disabled].role-restricted:hover {
+    opacity: 0.4;
+}
+
+/* Access info tooltips */
+.access-info {
+    position: relative;
+    display: inline-block;
+}
+
+.access-info .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+}
+
+.access-info:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Feature locked overlay */
+.feature-locked {
+    position: relative;
+}
+
+.feature-locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(2px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.feature-locked-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    text-align: center;
+}
+
+.feature-locked-message i {
+    font-size: 48px;
+    color: #f39c12;
+    margin-bottom: 10px;
+}
+
+/* Role-specific styling for navigation */
+.nav-link.admin-required {
+    position: relative;
+}
+
+.nav-link.admin-required::after {
+    content: '⚠';
+    margin-left: 8px;
+    color: #f39c12;
+}
+
+/* Permission matrix display */
+.permission-matrix {
+    margin: 20px 0;
+}
+
+.permission-matrix table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.permission-matrix th,
+.permission-matrix td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.permission-matrix th {
+    background-color: #34495e;
+    color: white;
+    font-weight: 600;
+}
+
+.permission-matrix .access-granted {
+    color: #27ae60;
+}
+
+.permission-matrix .access-denied {
+    color: #e74c3c;
+}

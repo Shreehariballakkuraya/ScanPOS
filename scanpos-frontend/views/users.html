@@ -1,0 +1,237 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-people"></i> User Management</h2>
+        <button class="btn btn-primary" ng-click="addUser()" ng-show="!showForm">
+            <i class="bi bi-person-plus"></i> Add User
+        </button>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="row mb-3" ng-show="!showForm">
+        <div class="col-md-6">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search by name or email..." 
+                       ng-model="search" 
+                       ng-keyup="$event.keyCode == 13 && searchUsers()">
+                <button class="btn btn-outline-secondary" type="button" ng-click="searchUsers()">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Form -->
+    <div class="card mb-4" ng-show="showForm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">{{ editMode ? 'Edit User' : 'Add New User' }}</h5>
+        </div>
+        <div class="card-body">
+            <form ng-submit="saveUser()" name="userForm" novalidate>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Full Name</label>
+                        <input type="text" 
+                               class="form-control" 
+                               ng-model="currentUser.name" 
+                               name="userName"
+                               required
+                               minlength="3"
+                               maxlength="100">
+                        <div class="validation-error" ng-show="userForm.userName.$touched && userForm.userName.$error.required">
+                            Name is required
+                        </div>
+                        <div class="validation-error" ng-show="userForm.userName.$touched && userForm.userName.$error.minlength">
+                            Name must be at least 3 characters
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Email</label>
+                        <input type="email" 
+                               class="form-control" 
+                               ng-model="currentUser.email"
+                               name="email"
+                               required>
+                        <div class="validation-error" ng-show="userForm.email.$touched && userForm.email.$error.required">
+                            Email is required
+                        </div>
+                        <div class="validation-error" ng-show="userForm.email.$touched && userForm.email.$error.email">
+                            Please enter a valid email address
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label" ng-class="{'required': !editMode}">Password</label>
+                        <input type="password" 
+                               class="form-control" 
+                               ng-model="currentUser.password"
+                               name="password"
+                               ng-required="!editMode"
+                               minlength="6">
+                        <small class="form-text text-muted" ng-if="editMode">Leave blank to keep current password</small>
+                        <div class="validation-error" ng-show="userForm.password.$touched && userForm.password.$error.required">
+                            Password is required
+                        </div>
+                        <div class="validation-error" ng-show="userForm.password.$touched && userForm.password.$error.minlength">
+                            Password must be at least 6 characters
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Role</label>
+                        <select class="form-select" 
+                                ng-model="currentUser.role"
+                                name="role"
+                                required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Admin - Full Access</option>
+                            <option value="cashier">Cashier - Limited Access</option>
+                        </select>
+                        <div class="validation-error" ng-show="userForm.role.$touched && userForm.role.$error.required">
+                            Role is required
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="isActive" ng-model="currentUser.is_active">
+                        <label class="form-check-label" for="isActive">Active</label>
+                        <small class="form-text text-muted d-block">Inactive users cannot login</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" 
+                            class="btn btn-success" 
+                            ng-class="{'btn-loading': loading}"
+                            ng-disabled="userForm.$invalid || loading">
+                        <i class="bi bi-check-circle"></i> {{loading ? 'Saving...' : 'Save'}}
+                    </button>
+                    <button type="button" class="btn btn-secondary" ng-click="cancelForm()" ng-disabled="loading">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Role Access Information -->
+    <div class="card mb-4" ng-show="!showForm">
+        <div class="card-header bg-info text-white">
+            <h6 class="mb-0"><i class="bi bi-info-circle"></i> Role Permissions</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><span class="badge bg-danger">ADMIN</span> - Full Access</h6>
+                    <ul>
+                        <li>Dashboard & Analytics</li>
+                        <li>Billing & Invoices</li>
+                        <li>Product Management</li>
+                        <li>Reports & Statistics</li>
+                        <li>User Management</li>
+                        <li>Delete Invoices</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><span class="badge bg-primary">CASHIER</span> - Limited Access</h6>
+                    <ul>
+                        <li>Dashboard (View only)</li>
+                        <li>Billing & Create Invoices</li>
+                        <li>View Invoices</li>
+                        <li class="text-muted"><del>Product Management</del></li>
+                        <li class="text-muted"><del>Reports & Statistics</del></li>
+                        <li class="text-muted"><del>User Management</del></li>
+                        <li class="text-muted"><del>Delete Invoices</del></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Users Table -->
+    <div class="card" ng-show="!showForm">
+        <div class="card-body">
+            <!-- Loading State -->
+            <div ng-show="loading" class="inline-loader">
+                <div class="spinner spinner-md"></div>
+                <div class="loading-text">Loading users...</div>
+            </div>
+            
+            <!-- Empty State -->
+            <div ng-show="!loading && users.length === 0" class="text-center py-4">
+                <i class="bi bi-people" style="font-size: 48px; color: #ccc;"></i>
+                <p class="text-muted mt-2">No users found</p>
+            </div>
+            
+            <!-- Users Table -->
+            <div ng-show="!loading && users.length > 0" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="user in users">
+                            <td>
+                                <i class="bi bi-person-circle"></i> {{user.name}}
+                            </td>
+                            <td>{{user.email}}</td>
+                            <td>
+                                <span class="badge" ng-class="getRoleBadgeClass(user.role)">
+                                    {{user.role | uppercase}}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge" ng-class="user.is_active ? 'bg-success' : 'bg-secondary'">
+                                    {{user.is_active ? 'Active' : 'Inactive'}}
+                                </span>
+                            </td>
+                            <td>{{user.created_at | date:'short'}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" 
+                                        ng-click="editUser(user)"
+                                        title="Edit user">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm" 
+                                        ng-class="user.is_active ? 'btn-secondary' : 'btn-success'"
+                                        ng-click="toggleActive(user)"
+                                        title="{{user.is_active ? 'Deactivate' : 'Activate'}}">
+                                    <i class="bi" ng-class="user.is_active ? 'bi-pause' : 'bi-play'"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger ms-1" 
+                                        ng-click="deleteUser(user)"
+                                        title="Delete user">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div ng-show="!loading && totalPages > 1" class="d-flex justify-content-center mt-3">
+                <nav>
+                    <ul class="pagination">
+                        <li class="page-item" ng-class="{disabled: currentPage === 1}">
+                            <a class="page-link" href="#" ng-click="changePage(currentPage - 1)">Previous</a>
+                        </li>
+                        <li class="page-item" ng-repeat="page in [] | range:1:totalPages" 
+                            ng-class="{active: page === currentPage}">
+                            <a class="page-link" href="#" ng-click="changePage(page)">{{page}}</a>
+                        </li>
+                        <li class="page-item" ng-class="{disabled: currentPage === totalPages}">
+                            <a class="page-link" href="#" ng-click="changePage(currentPage + 1)">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
